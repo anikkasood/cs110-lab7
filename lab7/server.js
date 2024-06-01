@@ -65,6 +65,7 @@ run().catch(console.dir);
 // Create controller handlers to handle requests at each endpoint
 app.get('/', homeHandler.getHome);
 app.get('/:roomName', roomHandler.getRoom);
+app.post('/create', roomHandler.createRoom); //as
 
 // NOTE: This is the sample server.js code we provided, feel free to change the structures
 
