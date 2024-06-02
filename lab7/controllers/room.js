@@ -1,35 +1,53 @@
 // Controller handler to handle functionality in room page
 const express = require('express');
+const router = express.Router();
+
 const mongoose = require('mongoose');
 const Room = require('../models/room');
 
 const roomGenerator = require('../util/roomIdGenerator.js');
 
-const routerRoom = express();
-
 
 // Example for handle a get request at '/:roomName' endpoint.
 function getRoom(request, response){
-    response.render('room', {title: 'chatroom', roomName: request.params.roomName, newRoomId: roomGenerator.roomIdGenerator()});
+    response.render('room', 
+        {title: 'chatroom', 
+         roomName: request.params.name, 
+         newRoomId: roomGenerator.roomIdGenerator()
+        });
 }
 
-
-routerRoom.get('/rooms/:_id', async (req, res) => {
+//getting room id
+router.get('/rooms/:_id', async (req, res) => {
     try {
       const roomId = req.params._id;
       console.log(roomId);
-      const room = await Room.findById(roomId).populate('messages');
-      if (!room) {
+
+      const roomMSG = await Room.findById(roomId).populate('messages');
+      if (!roomMSG) {
         return res.status(404).json({ message: 'Room not found' });
       }
-      res.json(room);
-      console.log(room);
+      res.json(roomMSG);
+      console.log(roomMSG);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
 });
 
+
+
+//get all rooms
+router.get('/rooms', async (req, res) => {
+    try {
+        const rooms = await Room.find({});
+        res.json(rooms);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
 module.exports = {
     getRoom,
-    routerRoom
+    router
 };
