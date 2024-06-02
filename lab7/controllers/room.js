@@ -44,7 +44,7 @@ router.get('/rooms/:_id', async (req, res) => {
 //get all rooms
 router.get('/rooms', async (req, res) => {
     try {
-        const rooms = await Room.find({});
+        const rooms = await Room.find({}, 'name');
         res.json(rooms);
     } catch (err) {
         res.status(500).json({ error: err.message });

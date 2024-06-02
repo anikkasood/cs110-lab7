@@ -75,7 +75,7 @@ run().catch(console.dir);
 
 
 // Create controller handlers to handle requests at each endpoint
-app.get('/', homeHandler.getHome);
+app.get('/home', homeHandler.router);
 //app.get('/:roomName', roomHandler.getRoom);
 
 app.use('/', roomHandler.router);
