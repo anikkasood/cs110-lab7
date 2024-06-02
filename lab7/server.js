@@ -78,7 +78,9 @@ run().catch(console.dir);
 app.get('/', homeHandler.getHome);
 //app.get('/:roomName', roomHandler.getRoom);
 
-app.use(roomHandler.router);
+app.use('/rooms', roomHandler.router);
+
+// app.use(roomHandler.router); // get the messages at a certain room
 //app.post('/create', roomHandler.createRoom); //as
 //app.get("/:roomName", roomHandler.getRoom); KM - need to add
 //app.get('/:roomName/messages', roomHandler.getRoom);    KM - need to add
