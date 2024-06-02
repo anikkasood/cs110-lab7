@@ -80,7 +80,7 @@ app.get('/', homeHandler.getHome);
 
 app.use('/rooms', roomHandler.router);
 
-// app.use(roomHandler.router); // get the messages at a certain room
+// app.use('/', roomHandler.router); // get the messages at a certain room
 //app.post('/create', roomHandler.createRoom); //as
 //app.get("/:roomName", roomHandler.getRoom); KM - need to add
 //app.get('/:roomName/messages', roomHandler.getRoom);    KM - need to add

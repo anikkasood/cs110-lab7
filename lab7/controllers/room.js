@@ -10,28 +10,37 @@ const roomGenerator = require('../util/roomIdGenerator.js');
 
 // Example for handle a get request at '/:roomName' endpoint.
 function getRoom(request, response){
-    response.render('room', 
-    { title: 'chatroom', 
-      roomName: request.params.roomName, 
-      newRoomId: roomGenerator.roomIdGenerator()
-    });
+    response.render('room', {title: 'chatroom', roomName: request.params.roomName, newRoomId: roomGenerator.roomIdGenerator()});
 }
 
 
-router.get('/rooms/:_id', async (req, res) => {
+routerRoom.get('/rooms/:_id', async (req, res) => {
     try {
       const roomId = req.params._id;
-      console.log(roomId); // display the room id
-      const roomMSG = await Room.findById(roomId).populate('messages');
-      if (!roomMSG) {
+      console.log(roomId);
+      const room = await Room.findById(roomId).populate('messages');
+      if (!room) {
         return res.status(404).json({ message: 'Room not found' });
       }
-      res.json(roomMSG);
-      console.log(roomMSG); // display the messages in the room
+      res.json(room);
+      console.log(room);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
 });
+
+
+
+//get all rooms
+router.get('/rooms', async (req, res) => {
+    try {
+        const rooms = await Room.find({});
+        res.json(rooms);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 
 module.exports = {
     getRoom,
