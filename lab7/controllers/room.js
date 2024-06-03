@@ -21,14 +21,19 @@ function getRoom(request, response){
 router.get('/rooms/:_id', async (req, res) => {
     try {
       const roomId = req.params._id;
-      console.log(roomId);
+      console.log('Requested Room Id: ', roomId);
 
       const roomMSG = await Room.findById(roomId).populate('messages');
       if (!roomMSG) {
         return res.status(404).json({ message: 'Room not found' });
       }
+
       res.json(roomMSG);
-      console.log(roomMSG);
+      //accessing the array of messages
+      const messages = roomMSG.messages;
+      //res.json(messages);
+      console.log(messages);
+
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
@@ -39,7 +44,7 @@ router.get('/rooms/:_id', async (req, res) => {
 //get all rooms
 router.get('/rooms', async (req, res) => {
     try {
-        const rooms = await Room.find({});
+        const rooms = await Room.find({}, 'name');
         res.json(rooms);
     } catch (err) {
         res.status(500).json({ error: err.message });
