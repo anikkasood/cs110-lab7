@@ -1,88 +1,119 @@
-// import dependencies
 const express = require('express');
-const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const hbs = require('express-handlebars');
 const path = require('path');
-const config = require("config");
+const { MongoClient } = require('mongodb');
 
-
-// import handlers
+// Import handlers
 const homeHandler = require('./controllers/home.js');
 const roomHandler = require('./controllers/room.js');
 
 const app = express();
-const port = 8080;
+const port = 5000;
 
+// MongoDB connection setup
+const uri = "mongodb+srv://kelseymoose346:tHxHoUgQvFSJOXTu@lab7.dacytz2.mongodb.net/lab7?retryWrites=true&w=majority&appName=lab7";
+const client = new MongoClient(uri);
+
+async function connectToDatabase() {
+  try {
+    await client.connect();
+    const db = client.db("chatroomDB");
+    app.locals.db = db;
+    console.log("Connected to MongoDB");
+
+    const collection = await db.listCollections().toArray();
+    if (!collection.map((coll) => coll.name).includes("rooms")) {
+      await db.createCollection("rooms");
+    }
+
+    // Start the server after the database connection is established
+    app.listen(port, () => console.log(`Server listening on http://localhost:${port}`));
+  } catch (err) {
+    console.error("Failed to connect to MongoDB", err);
+    process.exit(1);
+  }
+}
+
+connectToDatabase();
+
+//GIVEN CODE
 app.use(express.json());
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// If you choose not to use handlebars as template engine, you can safely delete the following part and use your own way to render content
-// view engine setup
-app.engine('hbs', hbs.engine({extname: 'hbs', defaultLayout: 'layout', layoutsDir: __dirname + '/views/layouts/'}));
+// View engine setup
+//MIGHT NEED .ENGINE
+app.engine('hbs', hbs.engine({ extname: 'hbs', defaultLayout: 'layout', layoutsDir: __dirname + '/views/layouts/' }));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
+//GIVEN CODE
 
-//get from default.json
-const db = config.get('mongoURI'); 
+// Create controller handlers to handle requests at each endpoint
+app.get('/', homeHandler.getHome);
+app.get('/:roomName', roomHandler.getRoom);
 
-mongoose.connect(db, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => {
-    console.log("Connected to MongoDB.");
-  })
-  .catch((error) => {
-    console.error("Error connecting to MongoDB:", error);
+// make a new room
+app.post('/create', async (req, res) => {
+  try {
+    const roomName = req.body.roomName || roomHandler.roomIdGenerator();
+    const existingRoom = await app.locals.db.collection("chatrooms").findOne({ roomName });
+    if (!existingRoom) {
+      await app.locals.db.collection("rooms").insertOne({ roomName, messages: [] });
+    }
+    res.redirect(`/${roomName}`);
+  } catch (error) {
+    console.error("Error creating chatroom:", error);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 
-// set up stylesheets route
 
-// TODO: Add server side code
+// get messages for room
+app.get('/:roomName/messages', async (req, res) => {
+  const roomName = req.params.roomName;
+  const room = await app.locals.db.collection("rooms").findOne({ roomName });
+  res.json(room ? room.messages : []);
+});
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
-// const client = new MongoClient(uri,  {
-//     serverApi: {
-//         version: ServerApiVersion.v1,
-//         strict: true,
-//         deprecationErrors: true,
+
+// app.get('/rooms/:_id', async (req, res) => {
+//     try {
+//       const roomId = req.params._id;
+//       console.log('Requested Room Id: ', roomId);
+
+//       const roomMSG = await Room.findById(roomId).populate('messages');
+//       if (!roomMSG) {
+//         return res.status(404).json({ message: 'Room not found' });
+//       }
+
+//       res.json(roomMSG);
+//       //accessing the array of messages
+//       const messages = roomMSG.messages;
+//       //res.json(messages);
+//       console.log(messages);
+
+//     } catch (err) {
+//       res.status(500).json({ error: err.message });
 //     }
-// }
-// );
-
-//connecting to local host mongodb - KM
-//const uri = "mongodb+srv://kelseymoose346:laMaENwsdzG46M2D@lab7.ziuefqs.mongodb.net/?retryWrites=true&w=majority&appName=lab7";
-// mongoose.connect("mongodb+srv://kelseymoose346:laMaENwsdzG46M2D@lab7.ziuefqs.mongodb.net/?retryWrites=true&w=majority&appName=lab7");
-
-async function run() {
-    try {
-      // Connect the client to the server (optional starting in v4.7)
-      await client.connect();
-  
-      // Send a ping to confirm a successful connection
-      await client.db("admin").command({ ping: 1 });
-      console.log("Pinged your deployment. You successfully connected to MongoDB!");
-    } finally {
-      // Ensures that the client will close when you finish/error
-      await client.close();
-    }
-}
-run().catch(console.dir);
+// });
 
 
+//post messages to a chatroom
+app.post('/:roomName/messages', async (req, res) => {
+  const roomName = req.params.roomName;
+  const { user, content, time } = req.content;
+  await app.locals.db.collection("rooms").updateOne(
+    { roomName },
+    { $push: { messages: { user, content, time } } }
+  );
+  res.sendStatus(200);
+});
 
-
-// Create controller handlers to handle requests at each endpoint
-app.get('/home', homeHandler.router);
-//app.get('/:roomName', roomHandler.getRoom);
-
-app.use('/', roomHandler.router);
-//app.post('/create', roomHandler.createRoom); //as
-//app.get("/:roomName", roomHandler.getRoom); KM - need to add
-//app.get('/:roomName/messages', roomHandler.getRoom);    KM - need to add
 
 // NOTE: This is the sample server.js code we provided, feel free to change the structures
-
+//GIVEN
 app.listen(port, () => console.log(`Server listening on http://localhost:${port}`));

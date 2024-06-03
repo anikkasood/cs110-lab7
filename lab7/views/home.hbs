@@ -1,17 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{title}}</title>
-</head>
-<body>
-    <h1>{{title}}</h1>
-    <h2>Available Rooms</h2>
-    <ul>
-        {{#each roomNames}}
-            <li>{{this}}</li>
-        {{/each}}
-    </ul>
-</body>
-</html>
+<h1>Home</h1>
+<p>This is the {{ title }} page</p>
+
+<form action="/create" method="post">
+  <input type="text" name="roomName" placeholder="Enter Room Name" required>
+  <button type="submit">Create Room</button>
+</form>
+
+<h2>Available Chatrooms</h2>
+<ul>
+  {{#each chatrooms}}
+    <li><a href="/{{this.roomName}}">{{this.roomName}}</a></li>
+  {{/each}}
+</ul>
