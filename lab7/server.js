@@ -9,7 +9,8 @@ const homeHandler = require('./controllers/home.js');
 const roomHandler = require('./controllers/room.js');
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 8080;
+// const port = 8080;
 
 // MongoDB connection setup
 const uri = "mongodb+srv://kelseymoose346:tHxHoUgQvFSJOXTu@lab7.dacytz2.mongodb.net/lab7?retryWrites=true&w=majority&appName=lab7";
@@ -105,7 +106,7 @@ app.get('/:roomName/messages', async (req, res) => {
 //post messages to a chatroom
 app.post('/:roomName/messages', async (req, res) => {
   const roomName = req.params.roomName;
-  const { user, content, time } = req.content;
+  const { user, content, time } = req.body;
   await app.locals.db.collection("rooms").updateOne(
     { roomName },
     { $push: { messages: { user, content, time } } }
